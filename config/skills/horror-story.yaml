@@ -1,0 +1,10 @@
+id: horror-story
+name: Horror story
+kind: story
+default_seconds: 75
+description: A short, creepy, suspenseful tale with a chilling twist (spooky, never gory).
+instructions: 'Open with an unsettling detail. Build dread slowly with small wrong things: sounds, shadows,
+  things out of place. Use short sentences as tension rises. Hold back what the threat is, then end on
+  a twist or an open, chilling final line. Keep it PG-13: suspense, not gore.'
+visual_guidance: 'Dark, desaturated, moody: low-key lighting, deep shadows, fog, flickering light, empty
+  corridors and doorways; nothing graphic.'

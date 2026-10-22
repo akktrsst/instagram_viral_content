@@ -1,0 +1,16 @@
+cloud-sql-python-connector[pg8000]<2,>=1.12
+fastapi<1,>=0.115
+firebase-admin<8,>=6.5
+google-cloud-storage<4,>=2.18
+google-genai<2,>=1.0
+httpx<1,>=0.27
+jinja2<4,>=3.1
+playwright<2,>=1.48
+pydantic-settings<3,>=2.6
+pyyaml<7,>=6
+sqlalchemy<3,>=2.0
+uvicorn[standard]<1,>=0.32
+
+[dev]
+pytest<9,>=8
+ruff<1,>=0.8

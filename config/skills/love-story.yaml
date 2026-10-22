@@ -1,0 +1,11 @@
+id: love-story
+name: Love story
+kind: story
+default_seconds: 75
+description: A heartfelt romance with a meet, a moment of distance, and an emotional payoff.
+instructions: Start with a small, specific moment that hints at the connection. Show how they meet or
+  reconnect, what pulls them apart (misunderstanding, distance, timing), and the gesture that brings them
+  together. Let emotions show through actions and details. End on a warm or bittersweet line. Keep it
+  tasteful.
+visual_guidance: 'Romantic cinematic look: golden hour, soft focus, warm tones, rain or city lights, intimate
+  close-ups of hands and glances.'

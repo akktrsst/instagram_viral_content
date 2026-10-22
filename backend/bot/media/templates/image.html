@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block style %}
+.split { display: grid; grid-template-rows: 1fr 1fr; gap: 36px; height: 100%; }
+.split > div { border-radius: 36px; padding: 56px; display: flex; flex-direction: column; justify-content: center; }
+.split .top { background: var(--surface); }
+.split .bottom { background: var(--primary); }
+.split .bottom .body { color: var(--text); margin-top: 0; font-size: 48px; font-weight: 600; }
+.quote-mark { font-family: Georgia, serif; font-size: 260px; line-height: .6; color: var(--accent); height: 140px; }
+.quote h1 { font-weight: 700; font-style: italic; }
+{% endblock %}
+{% block content %}
+  {% if layout == "split" %}
+    <div class="split">
+      <div class="top"><h1 class="{{ heading_size }}">{{ headline }}</h1></div>
+      <div class="bottom"><p class="body">{{ subline }}</p></div>
+    </div>
+  {% elif layout == "quote" %}
+    <div class="quote">
+      <div class="quote-mark">“</div>
+      <h1 class="{{ heading_size }}">{{ headline }}</h1>
+      <p class="body">— {{ subline }}</p>
+    </div>
+  {% else %}
+    <div class="bar"></div>
+    <h1 class="{{ heading_size }}">{{ headline }}</h1>
+    <p class="body">{{ subline }}</p>
+  {% endif %}
+{% endblock %}

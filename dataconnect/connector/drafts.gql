@@ -1,0 +1,45 @@
+query ListDrafts @auth(level: USER) {
+  drafts(
+    where: { ownerId: { eq_expr: "auth.uid" } }
+    orderBy: [{ updatedAt: DESC }]
+    limit: 100
+  ) {
+    id
+    title
+    topic
+    platform
+    tone
+    caption
+    hashtags
+    createdAt
+    updatedAt
+  }
+}
+
+mutation CreateDraft(
+  $title: String!
+  $topic: String!
+  $platform: String!
+  $tone: String!
+  $caption: String!
+  $hashtags: [String!]!
+) @auth(level: USER) {
+  draft_insert(
+    data: {
+      title: $title
+      topic: $topic
+      platform: $platform
+      tone: $tone
+      caption: $caption
+      hashtags: $hashtags
+      ownerId_expr: "auth.uid"
+      updatedAt_expr: "request.time"
+    }
+  )
+}
+
+mutation DeleteDraft($id: UUID!) @auth(level: USER) {
+  draft_delete(
+    first: { where: { id: { eq: $id }, ownerId: { eq_expr: "auth.uid" } } }
+  )
+}

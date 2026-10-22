@@ -1,0 +1,10 @@
+id: moral-story
+name: Moral story for kids
+kind: story
+default_seconds: 60
+description: A gentle fable with animals or children that teaches a simple lesson.
+instructions: Use simple words and short sentences a child can follow. Introduce a likeable character,
+  a small problem, a choice, and the consequence. Say the moral plainly in one line at the end. Kind tone,
+  no scary or violent moments.
+visual_guidance: Bright, soft storybook illustration style with friendly characters, rounded shapes and
+  cheerful colors, consistent across shots.

@@ -1,0 +1,10 @@
+id: mythology-tale
+name: Mythology & folklore
+kind: story
+default_seconds: 90
+description: A respectful retelling of a well-known myth, legend or folk tale.
+instructions: Retell a well-known story faithfully and respectfully; if versions differ, follow the most
+  widely known one and avoid inventing new canon. Open with the most dramatic moment, give context briefly,
+  follow the key events, and end with what the story teaches or why it is still told.
+visual_guidance: 'Epic painterly cinematic look: dramatic skies, rich traditional colors, grand landscapes,
+  ornate period details.'

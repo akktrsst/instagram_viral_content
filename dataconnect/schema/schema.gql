@@ -1,0 +1,12 @@
+type Draft @table {
+  id: UUID! @default(expr: "uuidV4()")
+  ownerId: String! @default(expr: "auth.uid")
+  title: String!
+  topic: String!
+  platform: String!
+  tone: String!
+  caption: String!
+  hashtags: [String!]!
+  createdAt: Timestamp! @default(expr: "request.time")
+  updatedAt: Timestamp! @default(expr: "request.time")
+}

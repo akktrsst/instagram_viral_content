@@ -1,0 +1,10 @@
+id: motivational-story
+name: Motivational story
+kind: story
+default_seconds: 60
+description: An uplifting story of struggle and comeback that ends with a lesson viewers can use.
+instructions: Start at the lowest point or a striking line. Show the struggle with specific, relatable
+  details (not clichés), the decision that changed things, the effort, and the earned result. End with
+  one short, memorable takeaway and a gentle call to action. Avoid preachy language and unrealistic promises.
+visual_guidance: 'Warm, hopeful cinematic look: early-morning light, silhouettes, determined close-ups,
+  the lighting brightens as the story turns.'

@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+{{ font_faces | safe }}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
+body {
+  font-family: "{{ brand.fonts.body }}", "Inter", "Helvetica Neue", Arial, sans-serif;
+  color: {{ brand.colors.text }};
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+.bg { position: absolute; inset: 0; background: center / cover no-repeat url("{{ background_uri }}"); }
+.shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 28%, rgba(0,0,0,0) 55%, rgba(0,0,0,.6) 100%); }
+.top {
+  position: absolute; top: 230px; left: 80px; right: 80px; text-align: center;
+}
+.top span {
+  display: inline-block; background: {{ brand.colors.primary }}; color: {{ brand.colors.text }};
+  font-family: "{{ brand.fonts.heading }}", "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 800; font-size: 60px; line-height: 1.15; letter-spacing: -0.01em;
+  padding: 18px 34px; border-radius: 22px; box-shadow: 0 10px 40px rgba(0,0,0,.35);
+}
+.cover-title {
+  position: absolute; left: 80px; right: 80px; top: 50%; transform: translateY(-50%); text-align: center;
+  font-family: "{{ brand.fonts.heading }}", "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 900; font-size: 104px; line-height: 1.04; letter-spacing: -0.02em;
+  text-shadow: 0 6px 30px rgba(0,0,0,.6);
+}
+.cover-shade { position: absolute; inset: 0; background: radial-gradient(ellipse 95% 38% at 50% 50%, rgba(0,0,0,.62), rgba(0,0,0,0) 100%); }
+.cover-title em { color: {{ brand.colors.accent }}; font-style: normal; }
+.caption {
+  position: absolute; left: 70px; right: 70px; bottom: {{ caption_bottom | default(470) }}px; text-align: center;
+  font-weight: 900; font-size: 84px; line-height: 1.12; letter-spacing: -0.01em; text-transform: uppercase;
+  color: #fff;
+  -webkit-text-stroke: 10px rgba(0,0,0,.9); paint-order: stroke fill;
+  text-shadow: 0 8px 24px rgba(0,0,0,.5);
+}
+.caption .hl { color: {{ brand.colors.accent }}; }
+.speaker {
+  display: block; width: fit-content; margin: 0 auto 14px;
+  -webkit-text-stroke: 0; text-shadow: none; text-transform: uppercase; letter-spacing: .08em;
+  font-size: 42px; font-weight: 800; color: #16131f;
+  background: {{ brand.colors.accent }}; padding: 8px 24px; border-radius: 999px;
+}
+.handle {
+  position: absolute; bottom: 300px; left: 0; right: 0; text-align: center;
+  font-size: 34px; font-weight: 700; color: rgba(255,255,255,.85); text-shadow: 0 2px 10px rgba(0,0,0,.6);
+}
+</style>
+</head>
+<body>
+  {% if background_uri %}<div class="bg"></div><div class="shade"></div>{% endif %}
+  {% if cover_title %}
+    <div class="cover-shade"></div>
+    <div class="cover-title">{{ cover_title }}</div>
+  {% else %}
+    {% if top_text %}<div class="top"><span>{{ top_text }}</span></div>{% endif %}
+    {% if caption %}<div class="caption">{% if speaker %}<span class="speaker">{{ speaker }}</span>{% endif %}{% for word in caption.split() %}{% if loop.index == highlight %}<span class="hl">{{ word }}</span>{% else %}{{ word }}{% endif %} {% endfor %}</div>{% endif %}
+  {% endif %}
+  <div class="handle">{{ brand.handle }}</div>
+</body>
+</html>

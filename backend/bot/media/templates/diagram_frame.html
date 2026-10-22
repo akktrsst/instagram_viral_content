@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+{{ font_faces | safe }}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; }
+body {
+  font-family: "{{ brand.fonts.body }}", "Inter", "Helvetica Neue", Arial, sans-serif;
+  color: {{ brand.colors.text }};
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  background:
+    radial-gradient(900px 700px at 85% 8%, color-mix(in srgb, {{ brand.colors.primary }} 38%, transparent), transparent 70%),
+    radial-gradient(800px 600px at 10% 95%, color-mix(in srgb, {{ brand.colors.accent }} 16%, transparent), transparent 70%),
+    {{ brand.colors.background }};
+}
+body::before {
+  content: ""; position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,.07) 1.5px, transparent 1.5px);
+  background-size: 36px 36px;
+}
+.cover-title {
+  position: absolute; top: 170px; left: 80px; right: 80px; text-align: center;
+  font-family: "{{ brand.fonts.heading }}", "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 900; font-size: 88px; line-height: 1.05; letter-spacing: -0.02em;
+}
+svg { position: absolute; inset: 0; }
+.edge { fill: none; stroke: rgba(255,255,255,.38); stroke-width: 5; stroke-linecap: round; }
+.edge.hot { stroke: {{ brand.colors.accent }}; stroke-width: 6; }
+.edge-label { font-size: 30px; font-weight: 700; fill: {{ brand.colors.muted }}; }
+.node {
+  position: absolute; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; padding: 10px 18px; border-radius: 26px;
+  background: {{ brand.colors.surface }};
+  border: 3px solid rgba(255,255,255,.14);
+  box-shadow: 0 18px 40px rgba(0,0,0,.35);
+}
+.node.focus {
+  border-color: {{ brand.colors.accent }};
+  background: color-mix(in srgb, {{ brand.colors.primary }} 30%, {{ brand.colors.surface }});
+  box-shadow: 0 0 0 10px color-mix(in srgb, {{ brand.colors.accent }} 22%, transparent), 0 18px 50px rgba(0,0,0,.45);
+}
+.node .label { font-family: "{{ brand.fonts.heading }}", "Inter", "Helvetica Neue", Arial, sans-serif; font-weight: 800; line-height: 1.1; }
+.node .detail { color: {{ brand.colors.muted }}; font-weight: 600; line-height: 1.2; margin-top: 8px; }
+.handle {
+  position: absolute; bottom: 300px; left: 0; right: 0; text-align: center;
+  font-size: 34px; font-weight: 700; color: rgba(255,255,255,.85);
+}
+</style>
+</head>
+<body>
+  {% if cover_title %}<div class="cover-title">{{ cover_title }}</div>{% endif %}
+  <svg width="1080" height="1920" viewBox="0 0 1080 1920">
+    <defs>
+      <marker id="tip" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="rgba(255,255,255,.6)"/>
+      </marker>
+      <marker id="tip-hot" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="{{ brand.colors.accent }}"/>
+      </marker>
+    </defs>
+    {% for a in arrows %}
+      {% set hot = a.source in focus or a.target in focus %}
+      <path class="edge{% if hot %} hot{% endif %}" d="{{ a.path }}" marker-end="url(#{{ 'tip-hot' if hot else 'tip' }})"/>
+      {% if a.label %}<text class="edge-label" x="{{ a.label_x + 14 }}" y="{{ a.label_y + 8 }}">{{ a.label }}</text>{% endif %}
+    {% endfor %}
+  </svg>
+  {% for b in boxes %}
+    <div class="node{% if b.id in focus %} focus{% endif %}"
+         style="left: {{ b.x - b.w / 2 }}px; top: {{ b.y - b.h / 2 }}px; width: {{ b.w }}px; height: {{ b.h }}px;">
+      <div class="label" style="font-size: {{ b.font }}px">{{ b.label }}</div>
+      {% if b.detail %}<div class="detail" style="font-size: {{ (b.font * 0.62) | round | int }}px">{{ b.detail }}</div>{% endif %}
+    </div>
+  {% endfor %}
+  {% if cover_title %}<div class="handle">{{ brand.handle }}</div>{% endif %}{# frames get the handle from the caption overlay #}
+</body>
+</html>

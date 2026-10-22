@@ -1,0 +1,10 @@
+id: mini-documentary
+name: Mini documentary
+kind: story
+default_seconds: 120
+description: A short, accurate documentary on a place, person in history, invention or event.
+instructions: Open with a striking question or fact. Give context, then the key chapters in order, with
+  accurate dates and names only when certain. Include one human or surprising detail, and end with why
+  it matters today. Stay factual and neutral.
+visual_guidance: 'Documentary cinematic look: archival-feeling textures, wide establishing shots, period-accurate
+  details, measured camera moves.'

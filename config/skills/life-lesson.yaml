@@ -1,0 +1,10 @@
+id: life-lesson
+name: Real-life style story
+kind: story
+default_seconds: 60
+description: A realistic, relatable slice-of-life story (fictional) with an honest lesson.
+instructions: Write a believable, fictional everyday story (office, family, college, friendship, money).
+  Use specific, grounded details and dialogue-like narration. Build to a quiet realisation. Do not present
+  it as a true event or attribute it to real people.
+visual_guidance: 'Natural documentary-style realism: handheld-feeling framing, everyday locations, natural
+  light, authentic expressions.'

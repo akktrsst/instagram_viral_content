@@ -1,0 +1,13 @@
+specVersion: "v1"
+serviceId: viral-content
+location: us-central1
+schema:
+  source: schema
+  datasource:
+    postgresql:
+      database: viral_content
+      cloudSql:
+        instanceId: viral-content-postgres
+        schemaValidation: COMPATIBLE
+connectorDirs:
+  - connector

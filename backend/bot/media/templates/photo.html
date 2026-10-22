@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block style %}
+.frame { padding: 0; background: #000; }
+.photo { position: absolute; inset: 0; background: center / cover no-repeat url("{{ photo_uri }}"); }
+.fade-top { position: absolute; inset: 0 0 auto 0; height: 55%; background: linear-gradient(180deg, rgba(0,0,0,.72), rgba(0,0,0,0)); }
+.fade-bottom { position: absolute; inset: auto 0 0 0; height: 60%; background: linear-gradient(0deg, rgba(0,0,0,.78), rgba(0,0,0,0)); }
+.overlay { position: absolute; left: 96px; right: 96px; text-shadow: 0 4px 24px rgba(0,0,0,.5); }
+.overlay.top { top: 120px; }
+.overlay.bottom { bottom: 180px; }
+.footer { color: rgba(255,255,255,.85); text-shadow: 0 2px 10px rgba(0,0,0,.6); }
+{% endblock %}
+{% block content %}
+  <div class="photo"></div>
+  {% if headline and text_position != "none" %}
+    <div class="fade-{{ text_position }}"></div>
+    <div class="overlay {{ text_position }}">
+      <div class="bar"></div>
+      <h1 class="{{ heading_size }}">{{ headline }}</h1>
+    </div>
+  {% else %}
+    <div class="fade-bottom" style="height: 22%"></div>
+  {% endif %}
+{% endblock %}

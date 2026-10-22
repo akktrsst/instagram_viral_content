@@ -1,0 +1,47 @@
+brand_name: Prompt to Product
+handle: "@promp_ttoproduct"
+
+colors:
+  background: "#0E0E13"
+  surface: "#1A1A23"
+  primary: "#7C5CFF"
+  accent: "#FFD166"
+  text: "#FFFFFF"
+  muted: "#A3A3B5"
+
+# Font family names. Drop .ttf/.otf/.woff2 files in assets/fonts/ and point to them
+# to embed them; otherwise the renderer falls back to system sans-serif fonts.
+fonts:
+  heading: Inter
+  body: Inter
+  heading_file: null   # e.g. assets/fonts/Inter-Bold.ttf
+  body_file: null      # e.g. assets/fonts/Inter-Regular.ttf
+
+logo: null             # e.g. assets/logo.png
+
+voice: >-
+  Friendly, direct, and practical. Short sentences. Talk to one person ("you").
+  Show, don't hype: concrete steps, real examples, no exaggerated promises.
+
+banned_words: [guaranteed, "get rich", secret hack, "100%", insane, mind-blowing]
+
+ctas:
+  - Save this for later
+  - Share it with a friend who needs it
+  - Follow for one practical tip a day
+  - Comment "guide" and I'll reply with the full list
+
+hashtags_always: ["#prompttoproduct"]
+default_collaborators: []    # up to 3 usernames invited on every post
+
+ai_disclosure: "Created with AI assistance."
+
+# General finish for generated photos and reel scenes. Keep it subject-neutral: each post
+# picks its own look (lighting, colors, setting) to suit its topic.
+image_finish: >-
+  high quality, sharp focus, well composed, natural rich colors, professional photography
+
+# Google Cloud Text-to-Speech voice for reels (see `gcloud ml speech voices` or the TTS docs).
+voiceover:
+  voice: en-IN-Chirp3-HD-Achird
+  speaking_rate: 1.0

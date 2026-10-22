@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "viral-content-api"
+version = "0.1.0"
+description = "API for Viral Content Studio"
+requires-python = ">=3.11"
+dependencies = [
+  "cloud-sql-python-connector[pg8000]>=1.12,<2",
+  "fastapi>=0.115,<1",
+  "firebase-admin>=6.5,<8",
+  "google-cloud-run>=0.10,<1",
+  "google-cloud-storage>=2.18,<4",
+  "google-cloud-texttospeech>=2.16,<3",
+  "imageio-ffmpeg>=0.5,<1",
+  "google-genai>=1.0,<2",
+  "httpx>=0.27,<1",
+  "jinja2>=3.1,<4",
+  "playwright>=1.48,<2",
+  "pydantic-settings>=2.6,<3",
+  "pyyaml>=6,<7",
+  "sqlalchemy>=2.0,<3",
+  "uvicorn[standard]>=0.32,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9", "ruff>=0.8,<1"]
+
+[tool.setuptools.packages.find]
+include = ["app*", "bot*"]
+
+[tool.setuptools.package-data]
+bot = ["media/templates/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

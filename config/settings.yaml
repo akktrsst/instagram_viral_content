@@ -1,0 +1,36 @@
+# Bot settings. The niche below is a placeholder: change it to your own.
+
+niche:
+  name: Prompt to product - building with AI
+  description: >-
+    Practical, no-hype guides to turning AI prompts into real things: apps, side
+    projects, automations, and content, using AI tools and no-code builders.
+  audience: Students, indie makers, freelancers, and early-career professionals aged 18-35
+  keywords: [ai tools, prompt engineering, build with ai, no-code, ai automation, side projects]
+
+posting:
+  timezone: Asia/Kolkata
+  max_posts_per_day: 2
+  default_times: ["09:00", "19:30"]
+
+# Share of daily posts per format; used by the idea engine in Phase 4.
+format_mix:
+  reel: 0.5
+  carousel: 0.35
+  image: 0.15
+
+# Trend sources (Phase 4). Instagram allows 30 unique hashtag searches per 7 days.
+sources:
+  hashtags: [aitools, promptengineering, buildwithai, nocode]
+  subreddits: [ChatGPT, PromptEngineering, SideProject, nocode]
+  youtube_queries: [build app with ai, ai tools 2026, prompt engineering tips]
+  rss_feeds:
+    - https://hnrss.org/frontpage
+  competitor_accounts: []
+
+# Virality score weights; the learner adjusts these from real results (Phase 5).
+scoring_weights:
+  growth_speed: 0.35
+  competitor_engagement: 0.25
+  niche_fit: 0.20
+  hook_strength: 0.20

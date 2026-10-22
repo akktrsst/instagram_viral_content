@@ -1,0 +1,10 @@
+id: facts-countdown
+name: Facts countdown
+kind: story
+default_seconds: 60
+description: A 'top N' countdown of surprising, accurate facts on any topic.
+instructions: Pick 5 to 7 genuinely surprising facts that are well established; do not invent numbers
+  or claims. Open with the most intriguing fact as a teaser, then count down, one fact per shot or two,
+  saving the best for number one. End by asking which surprised viewers most.
+visual_guidance: Clean, vivid documentary visuals that literally depict each fact; bold, high-clarity
+  compositions.

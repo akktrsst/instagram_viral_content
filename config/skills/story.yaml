@@ -1,0 +1,11 @@
+id: story
+name: Story video
+kind: story
+default_seconds: 60
+description: A narrated story of any kind, told shot by shot with visuals that follow the narration.
+instructions: 'Tell one clear story: a character we care about, what they want, what stands in the way,
+  a turning point, and a satisfying ending or twist. Open with the most intriguing moment or question
+  so viewers stay past the first two seconds. Keep narration conversational, as if told to a friend. Every
+  shot shows exactly what is being said at that moment.'
+visual_guidance: Cinematic, realistic film stills with natural light and shallow depth of field; vary
+  wide, medium and close-up shots like a film edit.

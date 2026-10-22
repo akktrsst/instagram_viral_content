@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block style %}
+.num { font-family: var(--heading-font); font-size: 150px; font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 28px; opacity: .9; }
+.cta-box { margin-top: 56px; padding: 40px 48px; border-radius: 32px; background: var(--surface); border: 3px solid var(--primary); font-size: 44px; font-weight: 700; }
+{% endblock %}
+{% block content %}
+  {% if total > 1 %}<div class="counter">{{ index }}/{{ total }}</div>{% endif %}
+  {% if slide.kind == "title" %}
+    <div class="bar"></div>
+    <h1 class="{{ heading_size }}">{{ slide.heading }}</h1>
+    {% if slide.body %}<p class="body">{{ slide.body }}</p>{% endif %}
+  {% elif slide.kind == "cta" %}
+    <h2 class="{{ heading_size }}">{{ slide.heading }}</h2>
+    {% if slide.body %}<div class="cta-box">{{ slide.body }}</div>{% endif %}
+  {% else %}
+    <div class="num">{{ "%02d" % (index - 1) }}</div>
+    <h2 class="{{ heading_size }}">{{ slide.heading }}</h2>
+    {% if slide.body %}<p class="body">{{ slide.body }}</p>{% endif %}
+  {% endif %}
+{% endblock %}
+{% block footer_right %}{% if slide.kind == "title" %}<span class="swipe">Swipe →</span>{% endif %}{% endblock %}

@@ -1,0 +1,10 @@
+id: recipe-video
+name: Recipe video
+kind: story
+default_seconds: 60
+description: A step-by-step cooking video from ingredients to the final plate.
+instructions: Open with the finished dish and why it's worth making. List key ingredients briefly, then
+  walk through the steps in order with times and quantities where useful, one step per shot. End with
+  a serving tip. Keep quantities realistic.
+visual_guidance: Appetising overhead and close-up food photography, natural window light, steam, textures,
+  clean kitchen surfaces.

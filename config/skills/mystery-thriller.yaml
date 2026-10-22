@@ -1,0 +1,10 @@
+id: mystery-thriller
+name: Mystery thriller
+kind: story
+default_seconds: 90
+description: A suspenseful mystery with clues, a ticking clock and a satisfying reveal.
+instructions: Open with the crime, disappearance or impossible situation. Plant two or three fair clues
+  the viewer can notice, add a red herring, raise the stakes, then reveal the answer in a way that recontextualises
+  an earlier clue. Keep the pace quick and every shot purposeful.
+visual_guidance: 'Neo-noir cinematic look: high contrast, cool blue and amber tones, rain, close-ups of
+  clues, dramatic framing.'

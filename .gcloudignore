@@ -1,0 +1,24 @@
+# Uploaded to Cloud Build: only what the image needs. Never secrets or generated media.
+.git
+.gitignore
+.gcloudignore
+.env
+.env.*
+!.env.example
+.firebase/
+.firebaserc
+firebase.json
+firebase-debug.log
+dataconnect/
+frontend/
+output/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.ruff_cache/
+**/*.egg-info/
+backend/.venv/
+backend/tests/
+backend/migrations/
+node_modules/
+README.md

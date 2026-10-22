@@ -1,0 +1,10 @@
+id: funny-story
+name: Funny story
+kind: story
+default_seconds: 45
+description: A short comedic story with a relatable setup and a punchline twist.
+instructions: Pick a relatable everyday situation. Set up expectations quickly, escalate with two or three
+  increasingly absurd beats, then land a punchline that flips the situation. Keep sentences snappy and
+  timing tight; no mean-spirited jokes.
+visual_guidance: Bright, colorful, expressive comedic look; exaggerated reactions, clear staging, playful
+  framing.

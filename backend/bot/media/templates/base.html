@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+{{ font_faces | safe }}
+:root {
+  --bg: {{ brand.colors.background }};
+  --surface: {{ brand.colors.surface }};
+  --primary: {{ brand.colors.primary }};
+  --accent: {{ brand.colors.accent }};
+  --text: {{ brand.colors.text }};
+  --muted: {{ brand.colors.muted }};
+  --heading-font: "{{ brand.fonts.heading }}", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --body-font: "{{ brand.fonts.body }}", "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1350px; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body-font);
+  -webkit-font-smoothing: antialiased;
+}
+.frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 110px 96px 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    radial-gradient(900px 600px at 110% -10%, color-mix(in srgb, var(--primary) 35%, transparent), transparent 70%),
+    radial-gradient(700px 500px at -20% 120%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 70%),
+    var(--bg);
+}
+h1, h2 { font-family: var(--heading-font); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+.h-xl { font-size: 104px; }
+.h-lg { font-size: 84px; }
+.h-md { font-size: 68px; }
+.h-sm { font-size: 56px; }
+.body { font-size: 42px; line-height: 1.4; color: var(--muted); margin-top: 44px; }
+.accent { color: var(--accent); }
+.bar { width: 120px; height: 12px; border-radius: 6px; background: var(--primary); margin-bottom: 56px; }
+.counter {
+  position: absolute; top: 72px; right: 96px;
+  font-size: 30px; font-weight: 700; color: var(--muted);
+  padding: 10px 22px; border-radius: 999px; background: var(--surface);
+}
+.footer {
+  position: absolute; left: 96px; right: 96px; bottom: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 30px; font-weight: 600; color: var(--muted);
+}
+.footer img { height: 64px; }
+.swipe { color: var(--accent); font-weight: 800; }
+{% block style %}{% endblock %}
+</style>
+</head>
+<body>
+<div class="frame">
+  {% block content %}{% endblock %}
+  <div class="footer">
+    <span>{{ brand.handle }}</span>
+    {% if logo_uri %}<img src="{{ logo_uri }}" alt="">{% else %}{% block footer_right %}{% endblock %}{% endif %}
+  </div>
+</div>
+</body>
+</html>
