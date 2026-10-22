@@ -21,6 +21,7 @@ def plan() -> StoryPlan:
                     "name": "Ravi",
                     "gender": "male",
                     "age": "child",
+                    "voice": "bright, quick boy's voice",
                     "look": "a 10-year-old boy in a red kurta",
                 }
             ],
@@ -189,10 +190,10 @@ def test_voices_are_distinct_and_fit_the_character():
     narrator = Voiceover(voice="hi-IN-Chirp3-HD-Achird")
     cast = cast_voices(
         [
-            Character(name="Anaya", gender="female", age="child", look="x"),
-            Character(name="Dadi", gender="female", age="elderly", look="x"),
-            Character(name="Raju", gender="male", age="adult", look="x"),
-            Character(name="Sonu", gender="male", age="adult", look="x"),
+            Character(name="Anaya", gender="female", age="child", voice="v", look="x"),
+            Character(name="Dadi", gender="female", age="elderly", voice="v", look="x"),
+            Character(name="Raju", gender="male", age="adult", voice="v", look="x"),
+            Character(name="Sonu", gender="male", age="adult", voice="v", look="x"),
         ],
         narrator,
     )
@@ -249,7 +250,9 @@ def test_dialogue_track_joins_lines_and_times_captions(tmp_path, monkeypatch):
         "visual_style": "v",
         "setting": "s",
         "target_seconds": 30,
-        "characters": [{"name": "Ravi", "gender": "male", "age": "child", "look": "boy"}],
+        "characters": [
+            {"name": "Ravi", "gender": "male", "age": "child", "voice": "bright", "look": "boy"}
+        ],
     }
     data["shots"][0]["lines"] = [
         {"speaker": "Narrator", "text": "The lights went out across the whole village"},
@@ -266,3 +269,125 @@ def test_dialogue_track_joins_lines_and_times_captions(tmp_path, monkeypatch):
     ravi = [c for c in captions if c.speaker == "Ravi"]
     assert ravi and ravi[0].start == pytest.approx(2.0 + story_video.LINE_GAP)
     assert all(c.speaker == "" for c in captions if c.end <= 2.0)
+
+
+def test_movie_prompt_has_dialogue_voice_and_lip_sync():
+    from bot.media.movie import clip_prompt, is_dialogue
+    from bot.writer.schemas import StoryDraft
+
+    data = {
+        **script(shots=4).model_dump(),
+        "title": "t",
+        "logline": "l",
+        "genre": "g",
+        "narration_language": "hi-IN",
+        "visual_style": "v",
+        "setting": "kitchen",
+        "target_seconds": 30,
+        "style": "movie",
+        "characters": [
+            {
+                "name": "Dadi",
+                "gender": "female",
+                "age": "elderly",
+                "voice": "warm husky voice",
+                "look": "grey bun",
+            }
+        ],
+    }
+    data["shots"][1]["lines"] = [{"speaker": "Dadi", "text": "सब्र रख बेटा"}]
+    data["shots"][1]["characters"] = ["Dadi"]
+    draft = StoryDraft.model_validate(data)
+    talk, quiet = clip_prompt(draft, draft.shots[1]), clip_prompt(draft, draft.shots[0])
+    assert is_dialogue(draft.shots[1]) and not is_dialogue(draft.shots[0])
+    assert 'Dadi (warm husky voice) says: "सब्र रख बेटा"' in talk and "in sync" in talk
+    assert "No one speaks" in quiet
+
+
+def test_dialogue_captions_fit_inside_the_clip():
+    from bot.media.movie import _dialogue_captions
+    from bot.writer.schemas import Line, StoryShot
+
+    shot = StoryShot(
+        lines=[
+            Line(speaker="Dadi", text="Patience makes the roti round"),
+            Line(speaker="Riya", text="Really?"),
+        ],
+        on_screen_text="",
+        scene="s",
+        characters=["Dadi", "Riya"],
+        camera="static",
+        key_moment=False,
+    )
+    captions = _dialogue_captions(shot, 6.0)
+    assert captions[0].start >= 0.3 and captions[-1].end <= 5.7 + 1e-6
+    assert {c.speaker for c in captions} == {"Dadi", "Riya"}
+
+
+def test_clip_part_mixes_clip_sound_with_narration(tmp_path):
+    import subprocess
+    import wave
+
+    from bot.media.movie import _duration, _has_audio, _render_clip_part
+    from bot.media.reel import ffmpeg_exe
+
+    clip = tmp_path / "clip.mp4"
+    subprocess.run(
+        [
+            ffmpeg_exe(),
+            "-y",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=c=blue:s=360x640:d=4",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=300:duration=4",
+            "-shortest",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:a",
+            "aac",
+            str(clip),
+        ],
+        check=True,
+    )
+    narration = tmp_path / "n.wav"
+    with wave.open(str(narration), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(44100)
+        w.writeframes(b"\x00\x00" * 44100 * 5)
+    out = tmp_path / "part.mp4"
+    _render_clip_part(clip, 5.0, [], out, narration=narration)
+    assert _has_audio(out) and abs(_duration(out) - 5.0) < 0.2
+
+
+def test_movie_with_unfilmed_scenes_leaves_a_retry_note(monkeypatch):
+    from types import SimpleNamespace
+
+    from bot import posts
+    from bot.media import movie
+
+    draft = SimpleNamespace(style="movie", shots=[1, 2, 3, 4, 5])
+    monkeypatch.setattr(posts, "load_draft", lambda fmt, script: draft)
+    monkeypatch.setattr(movie, "render_movie", lambda *a, **k: ([], 3))
+    monkeypatch.setattr(posts, "store_media", lambda post_id, paths: [])
+    post = SimpleNamespace(
+        id=1,
+        status="draft",
+        format="story",
+        script={},
+        language=None,
+        topic="t",
+        error=None,
+        media_paths=[],
+    )
+    session = SimpleNamespace(commit=lambda: None)
+    posts.render_media(session, post)
+    assert post.error.startswith("3 of 5 scenes couldn't be filmed") and "Try again" in post.error

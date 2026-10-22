@@ -26,6 +26,7 @@ def make(args: argparse.Namespace) -> int:
                 skill_id=args.skill,
                 target_seconds=args.seconds,
                 language=args.language,
+                style=args.style,
                 progress=lambda step, percent, message: print(f"  [{percent:3d}%] {message}"),
             )
         except (GenerationUnavailable, MediaError, SkillError) as exc:
@@ -197,6 +198,11 @@ def main(argv: list[str] | None = None) -> int:
         default="carousel",
     )
     make_cmd.add_argument("--skill", help="Skill id (see `skills list`)")
+    make_cmd.add_argument(
+        "--style",
+        choices=["cinematic", "movie"],
+        help="Story videos: cinematic (stills + motion) or movie (all real clips, lip-sync)",
+    )
     make_cmd.add_argument(
         "--language", help="Language code, e.g. hi, bho, hinglish, ta (default: match the brief)"
     )

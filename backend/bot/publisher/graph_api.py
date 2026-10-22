@@ -126,10 +126,13 @@ class InstagramClient:
                 error or response.text[:500],
             )
             # Instagram's user-facing message is plain language; its developer message is not.
-            friendly = error.get("error_user_msg") or (
-                "Instagram connection needs to be renewed."
-                if error.get("code") == 190
-                else "Instagram couldn't complete this request. Please try again in a few minutes."
+            friendly = error.get("error_user_msg") or {
+                190: "Instagram connection needs to be renewed.",
+                200: "Instagram has paused access for this app. Open the Meta app dashboard to see "
+                "why and what to do.",
+            }.get(
+                error.get("code"),
+                "Instagram couldn't complete this request. Please try again in a few minutes.",
             )
             raise InstagramError(friendly)
         return data

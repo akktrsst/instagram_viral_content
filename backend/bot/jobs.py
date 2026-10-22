@@ -60,8 +60,9 @@ def run(post_id: int, render_only: bool = False) -> None:
 
         try:
             if render_only:
-                render_media(session, post, progress=progress)
-                post.status, post.progress, post.error = "draft", None, None
+                post.error = None
+                render_media(session, post, progress=progress)  # may leave a note in post.error
+                post.status, post.progress = "draft", None
                 session.commit()
             else:
                 generate_post(session, post, progress=progress)

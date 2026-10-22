@@ -142,3 +142,10 @@ def test_posts_stuck_generating_are_released(db):
     (post,) = client_as(ADMIN).get("/api/v1/dashboard/posts").json()
     assert post["status"] == "failed"
     assert "Try again" in post["error"]
+
+
+def test_estimate_shows_movie_costs_more(db):
+    client = client_as(ADMIN)
+    movie = client.get("/api/v1/dashboard/estimate?style=movie&seconds=120").json()
+    cine = client.get("/api/v1/dashboard/estimate?style=cinematic&seconds=120").json()
+    assert movie["usd"] > cine["usd"] > 0 and movie["minutes"] > 0

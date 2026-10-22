@@ -1,5 +1,6 @@
 import json
 import re
+import unicodedata
 from datetime import date
 
 from app.config import settings
@@ -203,7 +204,12 @@ def finalize(draft: Draft, brand: BrandKit) -> Draft:
 
 
 def normalize_hashtags(tags: list[str]) -> list[str]:
-    cleaned = (re.sub(r"[^\w]", "", tag.lower()) for tag in tags)
+    # Keep letters, digits, underscores and combining marks: Indic scripts write vowel signs
+    # (matras) as marks, and dropping them garbles words ("गांव" would become "गव").
+    cleaned = (
+        "".join(c for c in tag.lower() if c == "_" or unicodedata.category(c)[0] in "LNM")
+        for tag in tags
+    )
     return _dedupe(f"#{tag}" for tag in cleaned if tag)
 
 

@@ -125,6 +125,36 @@ bucket `gs://instagram-viral-content-a8eba-media` (objects auto-delete after
 only from `approved`, and never twice: `ig_media_id` is checked first. Reels
 need Phase 2 video rendering. Long-lived tokens expire after 60 days.
 
+## Movie mode
+
+Story videos have two styles (`--style` on the CLI, or the first step of the
+website's Create flow):
+
+- **cinematic** (default): moving stills, character voices, real-video clips for
+  the hook and climax. About $0.03 per second of video.
+- **movie**: every shot is a generated clip with its own sound
+  (`MOVIE_VIDEO_MODEL`, default Veo 3.1 Fast). Dialogue shots have the character
+  speak their lines on camera with lip-sync, in a voice described once per
+  character for consistency; narration shots get natural ambience with the
+  narrator's voice over it. The writer keeps each shot to one clip (4-8 s, at
+  most ~16 words) and frames speakers facing the camera. A clip that fails
+  (for example under service load, which is retried) falls back to a moving
+  still with the recorded voices. About $0.12 per second, roughly $14 for 2
+  minutes; the website shows an estimate before creating.
+
+Measured lip-sync (Gemini review of a Hindi line): side profile on Veo Lite
+2/10, front-facing close-up on Veo Fast 5/10. Words were transcribed exactly in
+both. Expect better results in English than in other languages.
+
+## Website structure
+
+Public pages: `/` (home), `/features`, `/showcase`, `/how-it-works`, `/faq`,
+`/login`. Signed-in app: `/app` (dashboard), `/app/create` (choose, describe,
+create, with a cost and time estimate), `/app/library`, `/app/posts/:id` (player,
+live progress, script with who-says-what, caption, publish), `/app/analytics`,
+`/app/audience`, `/app/skills`, `/app/captions`. Showcase videos live in
+`frontend/public/showcase/`.
+
 ## Story videos (20 seconds to 2 minutes)
 
 `-f story` (or "Story video" on the website) runs a small agent:

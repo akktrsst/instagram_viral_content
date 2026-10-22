@@ -39,6 +39,7 @@ def new_post(
     skill_id: str | None = None,
     target_seconds: int | None = None,
     language: str | None = None,
+    style: str | None = None,
 ) -> Post:
     """Save a placeholder post (status "generating") that generate_post fills in."""
     skill = get_skill(session, skill_id)
@@ -54,6 +55,7 @@ def new_post(
         skill_id=skill.id if skill else None,
         target_seconds=target_seconds,
         language=language,
+        style=(style or "cinematic") if fmt == "story" else None,
         progress={"step": "queued", "percent": 0, "message": "Waiting to start"},
     )
     session.add(post)
@@ -79,6 +81,7 @@ def generate_post(
             skill=skill,
             tier=tier,
             language=post.language,
+            style=post.style or "cinematic",
             progress=report,
         )
     else:
@@ -96,11 +99,11 @@ def generate_post(
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "caption.txt").write_text(compose_caption(draft.caption, draft.hashtags) + "\n")
     (out_dir / "script.json").write_text(draft.model_dump_json(indent=2))
+    post.error = None
     if render:
-        render_media(session, post, progress=report)
+        render_media(session, post, progress=report)  # may leave a note in post.error
     post.status = "draft"
     post.progress = None
-    post.error = None
     session.commit()
     return post
 
@@ -115,6 +118,7 @@ def create_post(
     skill_id: str | None = None,
     target_seconds: int | None = None,
     language: str | None = None,
+    style: str | None = None,
     progress: Progress | None = None,
 ) -> Post:
     """Write and render a post in one go (used by the CLI)."""
@@ -126,6 +130,7 @@ def create_post(
         skill_id=skill_id,
         target_seconds=target_seconds,
         language=language,
+        style=style,
     )
     try:
         return generate_post(session, post, tier=tier, render=render, progress=progress)
@@ -147,7 +152,19 @@ def render_media(session: Session, post: Post, progress: Progress | None = None)
     Videos reuse pictures, voiceovers and clips left by an earlier, interrupted attempt."""
     _require_status(post, (*EDITABLE_STATUSES, "approved", "generating"), "rendered")
     draft = load_draft(post.format, post.script)
-    if post.format == "story":
+    if post.format == "story" and draft.style == "movie":
+        from bot.media.movie import render_movie
+
+        paths, missing = render_movie(
+            draft, post_dir(post), progress=progress, language=post.language
+        )
+        if missing:
+            post.error = (
+                f"{missing} of {len(draft.shots)} scenes couldn't be filmed because video creation "
+                'was busy, so they use still images. Press "Try again" later to film them; the '
+                "scenes already filmed are kept."
+            )
+    elif post.format == "story":
         from bot.media.story_video import render_story
 
         paths = render_story(draft, post_dir(post), progress=progress, language=post.language)

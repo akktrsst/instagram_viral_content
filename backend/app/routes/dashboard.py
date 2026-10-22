@@ -20,6 +20,7 @@ from bot.db.models import AccountSnapshot, Metric, Post
 from bot.db.session import get_session, init_db
 from bot.languages import LANGUAGES
 from bot.media.ai_images import MediaError
+from bot.media.movie import estimate_cost
 from bot.posts import PostStateError, approve_post, new_post, reject_post, update_post
 from bot.publisher.graph_api import InstagramClient, InstagramError
 from bot.publisher.publish import publish_post
@@ -74,6 +75,8 @@ class PostOut(BaseModel):
     skill_id: str | None = None
     target_seconds: int | None = None
     language: str | None = None
+    style: str | None = None
+    script: dict = {}
     progress: dict | None = None
     error: str | None = None
     metrics: MetricOut | None = None
@@ -86,6 +89,7 @@ class CreatePostIn(BaseModel):
     skill_id: str | None = Field(default=None, max_length=60)
     target_seconds: int | None = Field(default=None, ge=20, le=120)
     language: str | None = Field(default=None, max_length=20)
+    style: Literal["cinematic", "movie"] | None = None
 
 
 class SkillIn(BaseModel):
@@ -205,9 +209,21 @@ def create(body: CreatePostIn, db: DB):
         skill_id=body.skill_id,
         target_seconds=body.target_seconds,
         language=body.language,
+        style=body.style,
     )
     jobs.submit(post.id)
     return _post_out(post)
+
+
+@router.get("/estimate")
+def estimate(
+    style: Literal["cinematic", "movie"] = "cinematic",
+    seconds: int = Query(default=60, ge=20, le=120),
+):
+    """Rough cost and time for a story video, shown before creating it."""
+    shots = max(4, round(seconds / (6 if style == "movie" else 4.5)))
+    minutes = round(4 + shots * (1.2 if style == "movie" else 0.4))
+    return {"usd": estimate_cost(style, seconds), "minutes": minutes, "shots": shots}
 
 
 @router.get("/languages")

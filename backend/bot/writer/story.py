@@ -25,9 +25,22 @@ SHOT_TAIL = 0.3  # pause added after each narration line
 PASSING_SCORE = 8
 
 
-def shot_budget(target_seconds: int) -> tuple[int, int]:
-    """(number of shots, total narration words) that fill target_seconds."""
-    shots = max(4, min(30, round(target_seconds / SECONDS_PER_SHOT)))
+MOVIE_SECONDS_PER_SHOT = 6.0  # each movie shot is one generated clip of 4-8 seconds
+
+MOVIE_RULES = (
+    "MOVIE MODE: every shot becomes one real video clip of 4-8 seconds, so keep each shot to at "
+    "most 16 spoken words. A shot is EITHER dialogue (one character speaking, or a quick "
+    "two-line exchange) OR narration, never both. In dialogue shots frame the speaker in a "
+    "medium close-up facing the camera at a three-quarter angle with the face and mouth clearly "
+    "visible, and describe their expression. Every scene includes motion (a gesture, walking, "
+    "turning, wind, steam, traffic) so it plays like a film, with cuts that flow. "
+)
+
+
+def shot_budget(target_seconds: int, movie: bool = False) -> tuple[int, int]:
+    """(number of shots, total spoken words) that fill target_seconds."""
+    per_shot = MOVIE_SECONDS_PER_SHOT if movie else SECONDS_PER_SHOT
+    shots = max(4, min(30, round(target_seconds / per_shot)))
     words = round((target_seconds - shots * SHOT_TAIL) * WORDS_PER_SECOND)
     return shots, words
 
@@ -43,6 +56,7 @@ def write_story(
     skill: SkillSpec | None = None,
     tier: ModelTier | None = None,
     language: str | None = None,
+    style: str = "cinematic",
     progress: Progress | None = None,
     bot: BotSettings | None = None,
     brand: BrandKit | None = None,
@@ -54,7 +68,8 @@ def write_story(
     editor_model = settings.gemini_model_pro
     chosen = get_language(language)
     system = story_system_prompt(bot, brand, skill) + language_instruction(chosen)
-    shots, words = shot_budget(target_seconds)
+    movie = style == "movie"
+    shots, words = shot_budget(target_seconds, movie=movie)
     brief_json = json.dumps(brief, ensure_ascii=False)
 
     report("planning", 5, "Planning the story")
@@ -62,7 +77,8 @@ def write_story(
         model,
         f"Brief: {brief_json}\nTarget length: {target_seconds} seconds.\n"
         "Plan the story: title, logline, genre, narration language, a visual style that suits "
-        "it, the setting, up to 4 characters (each with gender, age group and a fixed look), "
+        "it, the setting, up to 4 characters (each with gender, age group, a voice description "
+        "and a fixed look), "
         "and 3-8 beats whose seconds add "
         f"up to about {target_seconds}.",
         StoryPlan,
@@ -81,7 +97,7 @@ def write_story(
         "seconds. Each shot's scene shows exactly what is being said at that moment; when a "
         "character speaks, show them speaking (in frame and listed in characters). Use "
         "character names from the plan, and vary framing (wide, medium, close-up) and camera "
-        "move. Mark key_moment "
+        "move. " + (MOVIE_RULES if movie else "") + "Mark key_moment "
         f"true on at most {max_video_clips(target_seconds)} shots: the hook and the climax."
     )
     script = generate_json(model, script_request, StoryScript, system_instruction=system)
@@ -145,8 +161,9 @@ def write_story(
         setting=plan.setting,
         characters=plan.characters,
         target_seconds=target_seconds,
+        style="movie" if movie else "cinematic",
     )
-    return finalize(limit_key_moments(draft), brand)
+    return finalize(draft if movie else limit_key_moments(draft), brand)
 
 
 MAX_SHOTS = 40

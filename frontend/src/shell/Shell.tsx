@@ -3,30 +3,30 @@ import { sendEmailVerification, signOut, type User } from "firebase/auth";
 import { ApiError } from "../api";
 import { getFirebaseServices } from "../firebase";
 import { Icon, Logo, type IconName } from "../icons";
+import { Link, match, navigate, usePath } from "../router";
 import Home from "../dashboard/Home";
-import Content from "../dashboard/Content";
 import Overview from "../dashboard/Overview";
 import Audience from "../dashboard/Audience";
-import CaptionLab from "../studio/CaptionLab";
 import Skills from "../dashboard/Skills";
-import type { ContentPreset } from "../dashboard/Content";
+import CaptionLab from "../studio/CaptionLab";
+import Create from "../app/Create";
+import Library from "../app/Library";
+import PostDetail from "../app/PostDetail";
+import Published from "../app/Performance";
 
-export const VIEWS = [
-  { key: "home", label: "Home", icon: "home", title: "Home", blurb: "Your Instagram at a glance." },
-  { key: "content", label: "Create & queue", short: "Create", icon: "layers", title: "Create & queue", blurb: "Create story videos, reels, carousels and photos, review them, and post to Instagram." },
-  { key: "skills", label: "Skills", icon: "sparkles", title: "Skills", blurb: "Reusable recipes for every kind of post: story genres, recipes, countdowns and your own." },
-  { key: "analytics", label: "Analytics", icon: "chart", title: "Analytics", blurb: "Followers, reach and engagement over time." },
-  { key: "audience", label: "Audience", icon: "users", title: "Audience", blurb: "Who follows you and where they are." },
-  { key: "lab", label: "Caption lab", short: "Captions", icon: "pen", title: "Caption lab", blurb: "Brainstorm ideas and captions, and get AI feedback before you post." },
-] as const satisfies readonly { key: string; label: string; icon: IconName; title: string; blurb: string; short?: string }[];
+type Page = { path: string; label: string; icon: IconName; title: string; blurb: string; mobile?: boolean };
 
-export type View = (typeof VIEWS)[number]["key"];
+const PAGES: Page[] = [
+  { path: "/app", label: "Dashboard", icon: "home", title: "Dashboard", blurb: "Your Instagram at a glance.", mobile: true },
+  { path: "/app/create", label: "Create", icon: "plus", title: "Create", blurb: "Pick what to make, describe it, and we'll do the rest.", mobile: true },
+  { path: "/app/library", label: "Library", icon: "layers", title: "Library", blurb: "Everything you've made: watch, edit and post.", mobile: true },
+  { path: "/app/analytics", label: "Analytics", icon: "chart", title: "Analytics", blurb: "Followers, reach and how each post performed.", mobile: true },
+  { path: "/app/audience", label: "Audience", icon: "users", title: "Audience", blurb: "Who follows you and where they are." },
+  { path: "/app/skills", label: "Skills", icon: "sparkles", title: "Skills", blurb: "Reusable recipes for every kind of post, including your own.", mobile: true },
+  { path: "/app/captions", label: "Caption lab", icon: "pen", title: "Caption lab", blurb: "Brainstorm captions and get feedback before you post." },
+];
+
 type Theme = "light" | "dark" | "system";
-
-function readHash(): View {
-  const hash = window.location.hash.slice(1);
-  return VIEWS.some((v) => v.key === hash) ? (hash as View) : "home";
-}
 
 function readTheme(): Theme {
   try {
@@ -38,12 +38,11 @@ function readTheme(): Theme {
 }
 
 export default function Shell({ user }: { user: User }) {
-  const [view, setViewState] = useState<View>(readHash);
+  const path = usePath();
   const [theme, setTheme] = useState<Theme>(readTheme);
   const [access, setAccess] = useState<"ok" | "denied" | "unverified">("ok");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [preset, setPreset] = useState<ContentPreset | undefined>();
 
   useEffect(() => {
     if (theme === "system") document.documentElement.removeAttribute("data-theme");
@@ -56,25 +55,13 @@ export default function Shell({ user }: { user: User }) {
     }
   }, [theme]);
 
-  useEffect(() => {
-    const onHash = () => setViewState(readHash());
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, []);
-
-  const setView = useCallback((next: View) => {
-    setViewState(next);
-    setError("");
-    window.history.replaceState(null, "", `#${next}`);
-    window.scrollTo({ top: 0 });
-  }, []);
+  useEffect(() => setError(""), [path]);
 
   const onError = useCallback((cause: unknown) => {
     if (cause instanceof ApiError && cause.status === 403) {
       setAccess(cause.message === "EMAIL_NOT_VERIFIED" ? "unverified" : "denied");
       return;
     }
-    // Server messages are written for people; anything else (e.g. a dropped connection) is not.
     setError(cause instanceof ApiError ? cause.message : "Something went wrong. Check your connection and try again.");
   }, []);
 
@@ -95,84 +82,92 @@ export default function Shell({ user }: { user: User }) {
     setAccess("ok");
   }
 
+  const postMatch = match("/app/posts/:id", path);
+  const page = postMatch
+    ? { path, label: "Post", icon: "image" as IconName, title: "Post", blurb: "Watch, edit and publish." }
+    : PAGES.find((p) => p.path === path) ?? PAGES[0];
   const isDark = theme === "dark" || (theme === "system" && window.matchMedia?.("(prefers-color-scheme: dark)").matches);
-  const current = VIEWS.find((v) => v.key === view)!;
   const initial = (user.email ?? "?")[0].toUpperCase();
+  const skillParam = new URLSearchParams(window.location.search).get("skill") ?? undefined;
+
+  function content() {
+    if (postMatch) return <PostDetail id={Number(postMatch.id)} onError={onError} />;
+    switch (page.path) {
+      case "/app/create": return <Create onError={onError} skillParam={skillParam} />;
+      case "/app/library": return <Library onError={onError} />;
+      case "/app/analytics": return <><Overview onError={onError} onOpenContent={() => navigate("/app/library")} /><Published onError={onError} /></>;
+      case "/app/audience": return <Audience onError={onError} />;
+      case "/app/skills": return <Skills onError={onError} onUse={(skill) => navigate(`/app/create?skill=${skill.id}`)} />;
+      case "/app/captions": return <CaptionLab />;
+      default: return <Home onError={onError} />;
+    }
+  }
 
   return (
     <div className="shell">
       <aside className="sidebar">
-        <Logo subtitle="Instagram manager" />
-        <div className="nav-label">Workspace</div>
-        {VIEWS.map((item) => (
-          <button key={item.key} className={view === item.key ? "nav-item active" : "nav-item"} onClick={() => setView(item.key)} aria-current={view === item.key ? "page" : undefined}>
+        <Link to="/app" aria-label="Dashboard"><Logo subtitle="Instagram studio" /></Link>
+        <Link to="/app/create" className="btn btn-primary sidebar-create"><Icon name="plus" /> New creation</Link>
+        <div className="nav-label">Studio</div>
+        {PAGES.map((item) => (
+          <Link key={item.path} to={item.path} className={page.path === item.path ? "nav-item active" : "nav-item"} aria-current={page.path === item.path ? "page" : undefined}>
             <Icon name={item.icon} /> {item.label}
-          </button>
+          </Link>
         ))}
         <div className="sidebar-promo">
-          <strong>Tell a story</strong>
-          <p>Story videos from 20 seconds to 2 minutes, with narration and real motion.</p>
-          <button className="btn" onClick={() => { setPreset({ skillId: "story", format: "story" }); setView("content"); }}><Icon name="video" /> New story</button>
+          <strong>Make a movie</strong>
+          <p>Characters who talk on camera, in your language.</p>
+          <Link to="/app/create" className="btn"><Icon name="video" /> Start</Link>
         </div>
         <div className="account">
           <span className="avatar">{initial}</span>
           <div className="account-text"><strong>{user.email}</strong><small>{user.emailVerified ? "Verified" : "Not verified"}</small></div>
           <button className="icon-btn" onClick={() => setTheme(isDark ? "light" : "dark")} aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}><Icon name={isDark ? "sun" : "moon"} /></button>
-          <button className="icon-btn" onClick={() => void signOut(getFirebaseServices().auth)} aria-label="Sign out"><Icon name="logout" /></button>
+          <button className="icon-btn" onClick={() => void signOut(getFirebaseServices().auth).then(() => navigate("/"))} aria-label="Sign out"><Icon name="logout" /></button>
         </div>
       </aside>
 
       <main className="main">
         <div className="mobile-header">
-          <Logo />
+          <Link to="/app" aria-label="Dashboard"><Logo /></Link>
           <div className="topbar-actions">
             <button className="icon-btn" onClick={() => setTheme(isDark ? "light" : "dark")} aria-label="Toggle theme"><Icon name={isDark ? "sun" : "moon"} /></button>
-            <button className="icon-btn" onClick={() => void signOut(getFirebaseServices().auth)} aria-label="Sign out"><Icon name="logout" /></button>
+            <button className="icon-btn" onClick={() => void signOut(getFirebaseServices().auth).then(() => navigate("/"))} aria-label="Sign out"><Icon name="logout" /></button>
           </div>
         </div>
 
-        <header className="topbar">
-          <div>
-            <h1>{current.title}</h1>
-            <p>{current.blurb}</p>
-          </div>
-          {view !== "content" && (
-            <div className="topbar-actions">
-              <button className="btn btn-primary" onClick={() => setView("content")}><Icon name="plus" /><span className="btn-label">New post</span></button>
-            </div>
-          )}
-        </header>
-
-        <div className="dash" style={{ marginBottom: access === "ok" && !error && !notice ? 0 : 20 }}>
-          {access === "denied" && <div role="alert" className="message error">{user.email} doesn't have access to this workspace yet. Ask the workspace owner to add you.</div>}
-          {access === "unverified" && (
-            <div role="alert" className="message warn verify-box">
-              <span>Verify {user.email} before managing Instagram, so nobody else can claim your address.</span>
-              <button className="btn btn-ghost" onClick={() => void verifyEmail()}>Send verification email</button>
-              <button className="btn btn-ghost" onClick={() => void recheck()}>I've verified</button>
-            </div>
-          )}
-          {notice && <div role="status" className="message success">{notice}</div>}
-          {error && <div role="alert" className="message error">{error}</div>}
-        </div>
-
-        {(access === "ok" || view === "lab") && (
-          <>
-            {view === "home" && access === "ok" && <Home onError={onError} onNavigate={setView} />}
-            {view === "content" && <Content onError={onError} preset={preset} />}
-            {view === "skills" && <Skills onError={onError} onUse={(skill) => { setPreset({ skillId: skill.id, format: skill.kind }); setView("content"); }} />}
-            {view === "analytics" && <Overview onError={onError} onOpenContent={() => setView("content")} />}
-            {view === "audience" && <Audience onError={onError} />}
-            {view === "lab" && <CaptionLab />}
-          </>
+        {!postMatch && (
+          <header className="topbar">
+            <div><h1>{page.title}</h1><p>{page.blurb}</p></div>
+            {page.path !== "/app/create" && (
+              <div className="topbar-actions"><Link to="/app/create" className="btn btn-primary"><Icon name="plus" /><span className="btn-label">New creation</span></Link></div>
+            )}
+          </header>
         )}
+
+        {(access !== "ok" || error || notice) && (
+          <div className="dash" style={{ marginBottom: 20, marginTop: postMatch ? 20 : 0 }}>
+            {access === "denied" && <div role="alert" className="message error">{user.email} doesn't have access to this workspace yet. Ask the workspace owner to add you.</div>}
+            {access === "unverified" && (
+              <div role="alert" className="message warn verify-box">
+                <span>Verify {user.email} before managing Instagram, so nobody else can claim your address.</span>
+                <button className="btn btn-ghost" onClick={() => void verifyEmail()}>Send verification email</button>
+                <button className="btn btn-ghost" onClick={() => void recheck()}>I've verified</button>
+              </div>
+            )}
+            {notice && <div role="status" className="message success">{notice}</div>}
+            {error && <div role="alert" className="message error">{error}</div>}
+          </div>
+        )}
+
+        {(access === "ok" || page.path === "/app/captions") && <div className={postMatch ? "page-pad" : ""}>{content()}</div>}
       </main>
 
       <nav className="bottom-nav" aria-label="Sections">
-        {VIEWS.map((item) => (
-          <button key={item.key} className={view === item.key ? "active" : ""} onClick={() => setView(item.key)}>
-            <Icon name={item.icon} />{"short" in item ? item.short : item.label}
-          </button>
+        {PAGES.filter((p) => p.mobile).map((item) => (
+          <Link key={item.path} to={item.path} className={page.path === item.path ? "active" : ""}>
+            <Icon name={item.icon} />{item.label}
+          </Link>
         ))}
       </nav>
     </div>

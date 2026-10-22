@@ -1,7 +1,8 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { api, fetchMedia, formatCount, formatSeconds, savedLanguage, saveLanguage, VIDEO_FORMATS, type BotPost, type IgMedia, type Language, type Overview, type PostFormat } from "../api";
+import { api, formatCount, formatSeconds, savedLanguage, saveLanguage, type BotPost, type IgMedia, type Language, type Overview, type PostFormat } from "../api";
 import { Icon, type IconName } from "../icons";
-import type { View } from "../shell/Shell";
+import { Link, navigate } from "../router";
+import { postMeta, PostThumb, postTitle, StatusChip } from "../app/media";
 import { ChartCard, Meter, TimeChart } from "./charts";
 
 const FORMATS: { key: PostFormat; label: string; icon: IconName }[] = [
@@ -18,7 +19,7 @@ function greeting() {
   return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 }
 
-export default function Home({ onError, onNavigate }: { onError: (e: unknown) => void; onNavigate: (v: View) => void }) {
+export default function Home({ onError }: { onError: (e: unknown) => void }) {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [posts, setPosts] = useState<BotPost[] | null>(null);
   const [media, setMedia] = useState<IgMedia[] | null>(null);
@@ -42,11 +43,11 @@ export default function Home({ onError, onNavigate }: { onError: (e: unknown) =>
     event.preventDefault();
     setCreating(true);
     try {
-      await api<BotPost>("/api/v1/dashboard/posts", {
+      const post = await api<BotPost>("/api/v1/dashboard/posts", {
         method: "POST",
         body: JSON.stringify({ topic, format, skill_id: format === "story" ? "story" : null, target_seconds: format === "story" ? seconds : null, language: language || null }),
       });
-      onNavigate("content");
+      navigate(`/app/posts/${post.id}`);
     } catch (cause) {
       onError(cause);
       setCreating(false);
@@ -111,19 +112,19 @@ export default function Home({ onError, onNavigate }: { onError: (e: unknown) =>
         <section className="dash-card">
           <header className="chart-head">
             <div><h3>Up next</h3><p>Drafts waiting for your review</p></div>
-            <button className="btn btn-ghost" onClick={() => onNavigate("content")}>Open queue <Icon name="arrowRight" /></button>
+            <Link to="/app/library" className="btn btn-ghost">Open library <Icon name="arrowRight" /></Link>
           </header>
           {posts === null ? <div className="dash-loading">Loading…</div> : queue.length ? (
             <div className="list">
               {queue.map((p) => (
-                <div className="list-row" key={p.id}>
-                  <DraftThumb post={p} />
+                <Link className="list-row" key={p.id} to={`/app/posts/${p.id}`}>
+                  <PostThumb post={p} className="thumb" />
                   <div className="list-main">
-                    <strong>{p.topic}</strong>
-                    <small>{p.format === "photo" ? "AI photo" : p.format} · {new Date(p.created_at).toLocaleDateString()}</small>
+                    <strong>{postTitle(p)}</strong>
+                    <small>{postMeta(p)}</small>
                   </div>
-                  <span className={`status status-${p.status}`}>{p.status}</span>
-                </div>
+                  <StatusChip status={p.status} />
+                </Link>
               ))}
             </div>
           ) : <p className="library-empty">Nothing waiting. Generate a post above.</p>}
@@ -149,7 +150,7 @@ export default function Home({ onError, onNavigate }: { onError: (e: unknown) =>
         <section className="dash-card">
           <header className="chart-head">
             <div><h3>Recent posts</h3><p>Latest synced numbers</p></div>
-            <button className="btn btn-ghost" onClick={() => onNavigate("analytics")}>Analytics</button>
+            <Link to="/app/analytics" className="btn btn-ghost">Analytics</Link>
           </header>
           {media === null ? <div className="dash-loading">Loading…</div> : media.length ? (
             <div className="list">
@@ -172,19 +173,4 @@ export default function Home({ onError, onNavigate }: { onError: (e: unknown) =>
       </div>
     </div>
   );
-}
-
-function DraftThumb({ post }: { post: BotPost }) {
-  const [src, setSrc] = useState<string | null>(null);
-  // A reel's media is [video, cover]; use the cover image.
-  const path = VIDEO_FORMATS.includes(post.format) ? post.media_urls[1] : post.media_urls[0];
-
-  useEffect(() => {
-    if (!path) return;
-    let url: string | null = null;
-    fetchMedia(path).then((m) => { url = m.url; setSrc(m.url); }).catch(() => setSrc(null));
-    return () => { if (url) URL.revokeObjectURL(url); };
-  }, [path]);
-
-  return src ? <img className="thumb" src={src} alt="" /> : <span className="thumb ph"><Icon name={VIDEO_FORMATS.includes(post.format) ? "video" : "image"} /></span>;
 }

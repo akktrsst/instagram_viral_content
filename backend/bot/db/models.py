@@ -54,6 +54,7 @@ class Post(Base):
     manual_post: Mapped[bool] = mapped_column(Boolean, default=False)
     skill_id: Mapped[str | None] = mapped_column(String(60))
     language: Mapped[str | None] = mapped_column(String(20))
+    style: Mapped[str | None] = mapped_column(String(20))  # story videos: "cinematic" | "movie"
     target_seconds: Mapped[int | None] = mapped_column(Integer)
     # While status is "generating": {"step": ..., "percent": 0-100, "message": ...}
     progress: Mapped[dict | None] = mapped_column(JSON)

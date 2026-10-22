@@ -37,15 +37,49 @@ def _client() -> genai.Client:
     )
 
 
-def animate_image(image: Path, prompt: str, seconds: int, out: Path) -> Path:
-    """Turn a still into a short, realistic clip that starts on that exact frame."""
+BUSY_RETRIES = 4
+BUSY_WAIT_SECONDS = 60
+
+
+def animate_image(
+    image: Path,
+    prompt: str,
+    seconds: int,
+    out: Path,
+    *,
+    with_audio: bool = False,
+    model: str | None = None,
+) -> Path:
+    """Turn a still into a short, realistic clip that starts on that exact frame.
+
+    With audio, the clip carries its own sound: ambience, effects and any dialogue written in
+    the prompt, spoken with lip sync. Retries when the video service is overloaded."""
+    for attempt in range(BUSY_RETRIES):
+        try:
+            return _animate_once(image, prompt, seconds, out, with_audio, model)
+        except _Busy:
+            if attempt == BUSY_RETRIES - 1:
+                raise MediaError("Video creation is very busy right now.") from None
+            logger.warning("Video service busy; retrying in %ss", BUSY_WAIT_SECONDS * (attempt + 1))
+            time.sleep(BUSY_WAIT_SECONDS * (attempt + 1))
+    raise AssertionError("unreachable")
+
+
+class _Busy(Exception):
+    pass
+
+
+def _animate_once(
+    image: Path, prompt: str, seconds: int, out: Path, with_audio: bool, model: str | None
+) -> Path:
     mime = mimetypes.guess_type(image.name)[0] or "image/png"
+    sound = "Natural, realistic sound for the scene. No background music." if with_audio else ""
     try:
         operation = _client().models.generate_videos(
-            model=settings.video_model,
+            model=model or settings.video_model,
             prompt=(
                 f"{prompt}\nRealistic, natural cinematic motion; subtle camera movement; "
-                "keep the subject and setting exactly as in the first frame."
+                f"keep the subject and setting exactly as in the first frame. {sound}"
             ),
             image=types.Image(image_bytes=image.read_bytes(), mime_type=mime),
             config=types.GenerateVideosConfig(
@@ -53,8 +87,9 @@ def animate_image(image: Path, prompt: str, seconds: int, out: Path) -> Path:
                 duration_seconds=seconds,
                 resolution=settings.video_resolution,
                 number_of_videos=1,
-                generate_audio=False,
-                negative_prompt="text, captions, subtitles, watermark, logo, distorted faces",
+                generate_audio=with_audio,
+                negative_prompt="text, captions, subtitles, watermark, logo, distorted faces, "
+                "music",
             ),
         )
         deadline = time.monotonic() + TIMEOUT_SECONDS
@@ -66,11 +101,15 @@ def animate_image(image: Path, prompt: str, seconds: int, out: Path) -> Path:
     except MediaError:
         raise
     except Exception as exc:
+        if any(code in str(exc) for code in ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")):
+            raise _Busy() from exc
         logger.exception("Video clip generation failed")
         raise MediaError("Couldn't create a video clip.") from exc
 
     if operation.error:
         logger.error("Video clip generation failed: %s", operation.error)
+        if operation.error.get("code") in (8, 14) or "high load" in str(operation.error):
+            raise _Busy()
         raise MediaError("Couldn't create a video clip.")
     videos = (operation.response.generated_videos if operation.response else None) or []
     if not videos or not videos[0].video:

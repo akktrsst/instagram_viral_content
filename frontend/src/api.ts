@@ -64,6 +64,8 @@ export type BotPost = {
   skill_id: string | null;
   target_seconds: number | null;
   language: string | null;
+  style: "cinematic" | "movie" | null;
+  script: Record<string, unknown>;
   progress: { step: string; percent: number; message: string } | null;
   error: string | null;
   metrics: Metrics | null;

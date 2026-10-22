@@ -88,6 +88,9 @@ class Character(BaseModel):
     name: str = Field(max_length=40)
     gender: Literal["female", "male"] = Field(description="Used to cast the speaking voice.")
     age: Literal["child", "teen", "adult", "elderly"]
+    voice: str = Field(
+        description="How their voice sounds, reused for every line: tone, pitch, pace, accent."
+    )
     look: str = Field(
         max_length=300,
         description="Fixed visual description reused in every shot: age, build, face, hair, "
@@ -165,6 +168,7 @@ class StoryDraft(StoryScript):
     setting: str = Field(max_length=300)
     characters: list[Character] = Field(max_length=4)
     target_seconds: int = Field(ge=20, le=120)
+    style: Literal["cinematic", "movie"] = "cinematic"
 
 
 Draft = CarouselDraft | ImageDraft | ReelDraft | PhotoDraft | ExplainerDraft | StoryDraft
@@ -186,8 +190,9 @@ def load_draft(fmt: str, script: dict) -> Draft:
             for shot in data.get("shots", [])
         ]
         data["characters"] = [
-            {"gender": "male", "age": "adult", **c} for c in data.get("characters", [])
+            {"gender": "male", "age": "adult", "voice": "", **c} for c in data.get("characters", [])
         ]
+        data.setdefault("style", "cinematic")
     return FORMAT_SCHEMAS[fmt].model_validate(data)
 
 

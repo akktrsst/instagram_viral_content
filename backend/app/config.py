@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     video_location: str = "us-central1"
     video_resolution: str = "1080p"
     video_clips_per_story: int = 2
+    # "Movie" style: every shot is a generated clip with its own sound and lip-synced dialogue.
+    movie_video_model: str = "veo-3.1-fast-generate-001"
+    movie_price_per_second: float = 0.12  # shown to users as an estimate before they create
+    cinematic_price_per_second: float = 0.03
     # Tried in order when a model is overloaded (429/503/504).
     gemini_fallback_models: str = "gemini-3.7-flash,gemini-3.5-flash"
 

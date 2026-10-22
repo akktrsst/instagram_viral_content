@@ -266,3 +266,12 @@ def test_cloud_runner_starts_a_job_per_post(monkeypatch):
     )
     jobs.submit(7, render_only=True)
     assert calls == [(7, True)]
+
+
+def test_hashtags_keep_indic_vowel_signs():
+    assert writer.normalize_hashtags(["गांव का मेला", "#छठ-पूजा", "தமிழ்நாடு", "#AI Tools!"]) == [
+        "#गांवकामेला",
+        "#छठपूजा",
+        "#தமிழ்நாடு",
+        "#aitools",
+    ]

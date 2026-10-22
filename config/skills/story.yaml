@@ -1,5 +1,5 @@
 id: story
-name: Story video
+name: General story
 kind: story
 default_seconds: 60
 description: A narrated story of any kind, told shot by shot with visuals that follow the narration.
